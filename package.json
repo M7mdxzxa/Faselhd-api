@@ -1,0 +1,20 @@
+{
+  "name": "Faselhd api by q3yb",
+  "version": "1.0.0",
+  "description": "this is an scraper for the faselhd api",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "q3yb",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^22.13.11",
+    "axios": "^1.13.1",
+    "cheerio": "^1.1.2",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "hls-parser": "^0.15.0"
+  }
+}
