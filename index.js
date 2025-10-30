@@ -286,7 +286,7 @@ app.get('/api/series', async (req, res) => {
     }
 });
 
-app.get('/api/search', async (req, res) => {
+app.get('/api/search1', async (req, res) => {
     try {
         const query = req.query.q;
         const type = req.query.type;
@@ -1111,7 +1111,96 @@ app.get('/api/details', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+app.get('/api/search', async (req, res) => {
+    const determineType = (url, title) => {
+        if (url.includes('/anime-movies')) return 'فلم انمي';
+        if (url.includes('/anime')) return 'انمي';
+        if (url.includes('/asian-series')) return 'مسلسل اسيوي';
+        if (url.includes('/asian-movies')) return 'فلم اسيوي';
+        if (url.includes('/hindi')) return 'هندي';
+        if (url.includes('/dubbed-movies')) return 'فلم مدبلج';
+        if (url.includes('/series')) return 'مسلسل اجنبي';
+        if (url.includes('/movies')) return 'فلم اجنبي';
+        if (url.includes('/tvshows')) return 'برنامج';
+        
+        const lowerTitle = title.toLowerCase();
+        if (lowerTitle.includes('فلم') || lowerTitle.includes('movie')) return 'فلم';
+        if (lowerTitle.includes('انمي') || lowerTitle.includes('anime')) return 'انمي';
+        if (lowerTitle.includes('مسلسل') || lowerTitle.includes('series')) return 'مسلسل';
+        if (lowerTitle.includes('برنامج') || lowerTitle.includes('tvshow')) return 'برنامج';
+        if (lowerTitle.includes('مدبلج') || lowerTitle.includes('dubbed')) return 'مدبلج';
+        
+        return 'غير محدد';
+    };
 
+    try {
+        const query = req.query.q || '';
+        const section = req.query.section || '';
+        const category = req.query.category || '';
+        const genre = req.query.genre || '';
+        
+        if (!query && (!section || section === 'none') && (!category || category === 'none')) {
+            return res.status(400).json({ error: 'Please provide a search query or select a section/category' });
+        }
+        
+        const allResults = [];
+        let page = 1;
+        let hasMore = true;
+        
+        while (hasMore) {
+            let url;
+            
+            if (query) {
+                url = page === 1 
+                    ? `${BASE_URL}/?s=${encodeURIComponent(query)}`
+                    : `${BASE_URL}/page/${page}?s=${encodeURIComponent(query)}`;
+            } else if (section && section !== 'none') {
+                url = `${BASE_URL}/${section}/page/${page}`;
+            } else if (category && category !== 'none' && genre) {
+                url = `${BASE_URL}/${category}/${genre.toLowerCase()}/page/${page}`;
+            }
+            
+            const response = await makeRequest(url);
+            const $ = cheerio.load(response.data);
+            
+            const noResults = $('body:contains("لم نجد شيئا")').length > 0;
+            if (noResults) {
+                hasMore = false;
+                break;
+            }
+            
+            const pageResults = [];
+            $('div#postList div.col-xl-2 a').each((i, element) => {
+                const $elem = $(element);
+                const img = $elem.find('div.imgdiv-class img, img');
+                const title = img.attr('alt');
+                const itemUrl = $elem.attr('href');
+                
+                pageResults.push({
+                    title: title,
+                    url: itemUrl,
+                    thumbnail: img.attr('data-src'),
+                    type: determineType(itemUrl, title)
+                });
+            });
+            
+            if (pageResults.length === 0) {
+                hasMore = false;
+            } else {
+                allResults.push(...pageResults);
+                page++;
+            }
+        }
+        
+        res.json({
+            results: allResults,
+            totalResults: allResults.length,
+            totalPages: page - 1
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
 app.get('/api/health', (req, res) => {
     res.json({ 
         status: 'OK', 
