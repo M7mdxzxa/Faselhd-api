@@ -595,7 +595,7 @@ app.get('/api/video-links', async (req, res) => {
             return res.status(400).json({ error: 'URL parameter is required' });
         }
 
-        const { deobfuscate } = require('./lib/synchrony-deobfuscator');
+        const { deobfuscate } = require('../lib/synchrony-deobfuscator');
         const HLS = require('hls-parser');
         
         const videoRegex = /(https?:)?\/\/[^"]+\.m3u8/;
