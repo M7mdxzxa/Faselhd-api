@@ -5,7 +5,7 @@ const app = express();
 
 const SITE_IDENTIFIER = 'faselhd';
 const SITE_NAME = 'Faselhd';
-const BASE_URL = process.env.BASE_URL || 'https://www.faselhds.biz';
+const BASE_URL = process.env.BASE_URL || 'https://web12218x.faselhdx.bid/?s';
 const ALTERNATIVE_URL = 'http://195.66.210.99/';
 
 const USER_AGENTS = [
